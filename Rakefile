@@ -1,0 +1,32 @@
+require 'rake'
+require 'rdoc/task'
+require 'rake/testtask'
+require 'rake/clean'
+
+CLEAN.include ['*.gem', 'pkg']  
+
+$spec = eval(File.read('altmetric.spec'))
+
+Rake::RDocTask.new do |rdoc|
+    rdoc.rdoc_dir = 'doc/rdoc'
+    rdoc.options += RDOC_OPTS
+    rdoc.rdoc_files.include("README.md", "lib/**/*.rb")
+    rdoc.main = "README.md"    
+end
+
+Rake::TestTask.new do |test|
+  test.test_files = FileList['tests/tc_*.rb']
+end
+  
+task :package do
+  sh %{gem build altmetric.spec}  
+end
+
+task :install do
+  sh %{sudo gem install --no-ri --no-rdoc #{$spec.name}-#{$spec.version}.gem}
+end
+
+desc "Uninstall the gem"
+task :uninstall => [:clean] do
+  sh %{sudo gem uninstall #{$spec.name}}
+end
