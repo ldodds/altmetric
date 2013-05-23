@@ -1,5 +1,4 @@
 require 'json'
-require 'rest-client'
 require 'httpclient'
 require 'uri_template'
 

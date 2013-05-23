@@ -5,7 +5,7 @@ RDOC_OPTS = ['--quiet', '--title', 'Altmetric Client', '--main', 'README.md']
 
 Gem::Specification.new do |s|
   s.name = "altmetric.rb"
-  s.version = "0.0.1"
+  s.version = "0.0.2"
   s.platform = Gem::Platform::RUBY
   s.required_ruby_version = ">= 1.9.3"    
   s.has_rdoc = true
