@@ -69,4 +69,44 @@ class AltmetricTest < Test::Unit::TestCase
     assert_equal({}, response)
   end  
     
+  def test_unknownarticle
+    http_client = mock()
+    response = HTTP::Message.new_response("Unknown")
+    response.status = 404
+    http_client.expects(:get).with(
+        "http://api.altmetric.com/v1/doi/123", {"key"=>"abc"}, {"Accept"=>"application/json"}).returns(
+          response )
+    client = Altmetric::Client::new({:apikey=>"abc", :client=>http_client}) 
+    assert_raise Altmetric::UnknownArticleException do
+      response = client.get_metrics(["doi", "123"])     
+    end
+  end
+  
+  def test_ratelimited
+    http_client = mock()
+    response = HTTP::Message.new_response("Unknown")
+    response.status = 420
+    http_client.expects(:get).with(
+        "http://api.altmetric.com/v1/doi/123", {"key"=>"abc"}, {"Accept"=>"application/json"}).returns(
+          response )
+    client = Altmetric::Client::new({:apikey=>"abc", :client=>http_client}) 
+    assert_raise Altmetric::RateLimitedException do
+      response = client.get_metrics(["doi", "123"])     
+    end
+  end  
+  
+  def test_unauthorized
+    http_client = mock()
+    response = HTTP::Message.new_response("Unknown")
+    response.status = 403
+    http_client.expects(:get).with(
+        "http://api.altmetric.com/v1/doi/123", {"key"=>"abc"}, {"Accept"=>"application/json"}).returns(
+          response )
+    client = Altmetric::Client::new({:apikey=>"abc", :client=>http_client}) 
+    assert_raise Altmetric::UnauthorizedException do
+      response = client.get_metrics(["doi", "123"])     
+    end
+  end    
+  
+  
 end

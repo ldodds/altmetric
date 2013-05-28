@@ -2,8 +2,36 @@ require 'json'
 require 'httpclient'
 require 'uri_template'
 
+
 module Altmetric
+
+  class APIException < RuntimeError
+    attr_reader :url, :query
+    def initialize(url, query, msg)
+      super(msg)
+      @url = url
+      @query = query
+    end
+  end  
   
+  class UnknownArticleException < APIException
+    def initialize(url, query, msg)
+      super(url, query, msg)
+    end
+  end  
+  
+  class UnauthorizedException < APIException
+    def initialize(url, query, msg)
+      super(url, query, msg)
+    end    
+  end
+ 
+  class RateLimitedException < APIException
+    def initialize(url, query, msg)
+      super(url, query, message)
+    end
+  end
+       
   class Client
     
     DEFAULT_USER_AGENT = "altmetric-ruby-client/0.0.1"
@@ -110,7 +138,7 @@ module Altmetric
       if block_given?
         yield response
       end
-      validate_response(response)      
+      validate_response(url, query, response)      
       return JSON.parse( response.content )      
     end
     
@@ -122,10 +150,19 @@ module Altmetric
       return response
     end
         
-    def validate_response(response)
-      if response.status != 200
-        raise "Unable to perform request. Status: #{response.status}. Message: #{response.content}"
-      end      
+    def validate_response(url, query, response)
+      case response.status
+      when 200
+        #OK
+      when 403
+        raise UnauthorizedException.new(url, query, response.content)
+      when 404
+        raise UnknownArticleException.new(url, query, response.content)
+      when 420
+        raise RateLimitedException.new(url, query, response.content)
+      else
+        raise APIException.new(url, query, response)     
+      end
     end
     
   end
