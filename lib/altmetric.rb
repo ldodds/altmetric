@@ -6,29 +6,30 @@ require 'uri_template'
 module Altmetric
 
   class APIException < RuntimeError
-    attr_reader :url, :query
-    def initialize(url, query, msg)
-      super(msg)
+    attr_reader :url, :query, :response
+    def initialize(url, query, response)
+      super(response.content)
       @url = url
       @query = query
+      @response = response
     end
   end  
   
   class UnknownArticleException < APIException
-    def initialize(url, query, msg)
-      super(url, query, msg)
+    def initialize(url, query, resp)
+      super(url, query, resp)
     end
   end  
   
   class UnauthorizedException < APIException
-    def initialize(url, query, msg)
-      super(url, query, msg)
+    def initialize(url, query, resp)
+      super(url, query, resp)
     end    
   end
  
   class RateLimitedException < APIException
-    def initialize(url, query, msg)
-      super(url, query, message)
+    def initialize(url, query, resp)
+      super(url, query, resp)
     end
   end
        
@@ -155,11 +156,11 @@ module Altmetric
       when 200
         #OK
       when 403
-        raise UnauthorizedException.new(url, query, response.content)
+        raise UnauthorizedException.new(url, query, response)
       when 404
-        raise UnknownArticleException.new(url, query, response.content)
+        raise UnknownArticleException.new(url, query, response)
       when 420
-        raise RateLimitedException.new(url, query, response.content)
+        raise RateLimitedException.new(url, query, response)
       else
         raise APIException.new(url, query, response)     
       end
